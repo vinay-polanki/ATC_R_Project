@@ -7,33 +7,77 @@ output: word_document
 
 
 
-
+# Setting up the knitr file
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE)
 ```
 
-##
+## Abstract
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Research Questions
+
+
+## DATA
+setting working directory to avoid errors while saving binary files
+
+```{r echo=TRUE}
+setwd("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA")
+```
+
+
+##Loading DATA into rmd file from drive.
 
 ```{r Loading_Data, echo=TRUE}
 #Loading and Inspecting the DATA
 install.packages("readr")
 library(readr)
-Flight_DATA <- read.csv("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA/air_traffic_main_Data.csv")
+Flight_DATA <- read.csv("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA/air_traffic_main_Data.csv", header = TRUE, stringsAsFactors = FALSE)
+
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
+## Viewing first and last few rows.
 
 ```{r  Viewing_Data, echo = FALSE}
 head(Flight_DATA)
 tail(Flight_DATA)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r summaries, echo = TRUE }
+
+is.na(Flight_DATA)
+
+summary(Flight_DATA)
+
+grouping(Flight_DATA$month)
+
+```
+
+
+```{r, echo=TRUE}
+
+v <- c(Flight_DATA$arr_flights)
+
+
+
+
+```
+
+
+``` {}
+
+```
+
+
+
+
+
+
+
+
+
+
