@@ -7,7 +7,57 @@ output: word_document
 
 
 
+## Youtube links
+
+
+https://www.youtube.com/watch?v=v048ru5v0BE (R_markdown file editing)
+
+https://www.youtube.com/watch?v=0KfoJ3NiFK4 (Intro to STAT tests)
+
+https://www.youtube.com/watch?v=lyXd3zCCxto (gganimate for presentation)
+
+## Regression Analysis
+
+https://www.youtube.com/watch?v=66z_MRwtFJM(Linear)
+
+https://www.youtube.com/watch?v=mno47Jn4gaU (Multiple Regression(STATQUeST))
+
+https://www.youtube.com/watch?v=wsi0jg_gH28 (Linear (STATQUEST))
+
+https://www.youtube.com/watch?v=q8eR2suCyGk (NA VALUES)
+
+
+https://www.youtube.com/watch?v=dWjFReizadM (Regression Models)
+
+https://www.youtube.com/watch?v=AR6sLpcVcSU (prediction using regression)
+
+https://www.youtube.com/watch?v=O42iklO8uYU  (Missing Values in R)
+
+https://www.youtube.com/watch?v=UdndWOsRm5E  (subsetting missing values in R)
+
+https://www.youtube.com/watch?v=uaCK6wFcX3I   (subsetting missing values in R)
+
+https://www.youtube.com/watch?v=1MHX1s5bb6w (shiny for Dashboard)
+
+https://www.youtube.com/watch?v=fkqD9kcvCkU  (dashboard creation in R)
+
+https://www.youtube.com/watch?v=RGXUkXNrVxU  (Flexdashboards)
+
+https://www.youtube.com/watch?v=jxsKUxkiaLI (shiny web apps)
+
+
+
+
+
+
+
+
+
+
 # Setting up the knitr file
+Rendered Document after knitting of the "rmd" file shows the code and output
+where as the warnings generated during the code execution is excluded from the code
+below but the code in this particular code chunk is not displayed as this code chunk is used to set global options.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -29,7 +79,8 @@ setwd("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA")
 ```
 
 
-##Loading DATA into rmd file from drive.
+##Loading DATA
+Loading Data from drive and installing "readr" package.
 
 ```{r Loading_Data, echo=TRUE}
 #Loading and Inspecting the DATA
@@ -68,12 +119,11 @@ v <- c(Flight_DATA$arr_flights)
 ```
 
 
-``` {}
+
+
+```{r}
 
 ```
-
-
-
 
 
 
