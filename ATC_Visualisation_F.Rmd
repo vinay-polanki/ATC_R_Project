@@ -1,0 +1,171 @@
+---
+title: "Flight_Delay_Prediction_using_R"
+author: "Joseph Vinay Kumar POLANKI"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+## do it with both NA values in the DATA and removing NA values in DATA
+
+# Setting up the knitr file
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+## Abstract
+
+## Research Questions
+
+## DATA
+
+##Loading DATA into rmd file from drive.
+
+```{r Loading_Data, echo= TRUE}
+#Loading and Inspecting the DATA
+install.packages("readr")
+library(readr)
+Flight_DATA <- read.csv("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA/air_traffic_main_Data.csv")
+```
+
+## Viewing first and last few rows.
+
+```{r  Viewing_Data, echo = TRUE}
+head(Flight_DATA)
+tail(Flight_DATA)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+```{r }
+install.packages("dplyr")
+library(dplyr)
+glimpse(flight_data)
+
+```
+
+```{r  echo=TRUE }
+V <- is.na(Flight_DATA)   #V <- sum(is.na(Flight_DATA))
+
+y <- sum(V)
+
+y
+
+#Data set have 120 rows of NA values combined in all columns.
+
+```
+
+```{r echo = TRUE,warning=FALSE}
+
+install.packages("tidyr")
+library(tidyr)
+
+# creating a copy original FLIGHT_DATA
+
+Copy_DATA <- Flight_DATA
+
+#omitting all the NA Values to see no of rows and Columns
+
+Copy_Flight_DATA <- Copy_DATA %>% drop_na()
+
+
+# checking wether they are IDENTICAL
+
+identical(Copy_Flight_DATA,Flight_DATA)
+
+# understanding the change
+dim(Flight_DATA)
+dim(Copy_Flight_DATA)
+
+```
+
+```{r }
+
+# Combine the two columns into one
+flight_data <- Flight_DATA %>%
+ mutate(combined_delay = paste(security_delay, weather_delay, carrier_delay, nas_delay, late_aircraft_delay, sep = "_"))
+
+```
+## if combined delay is not converted to numeric throwing an error.
+
+```{r }
+combined_delay <- as.numeric(flight_data$combined_delay)
+
+```
+
+```{r }
+
+# Plotting histogram of combined delay minutes
+ggplot(flight_data, aes(x = weather_delay)) +
+  geom_histogram(fill = "skyblue", color = "white") +
+  labs(title = "Distribution of Flight Delay Minutes",
+       x = "Combined Delay Minutes",
+       y = "Frequency")
+
+
+```
+
+```{r }
+delay_by_airport <- Flight_DATA %>%
+group_by(airport) %>%
+summarize(AVG_DELAY = mean(, na.rm = 'TRUE'))
+
+```
+
+# Plotting delay by airport
+
+```{r }
+ggplot(delay_by_airport, aes(x = airport, y = avg_delay)) + geom_bar(stat = "identity", fill = "skyblue", color = "black") + labs(title = "Average Delay by Airport", x = "Airport", y = "Average Delay (minutes)")
+```
+
+```{r }
+
+delay_by_airport <- Flight_DATA %>%
+dplyr:::summarize.grouped_df(., AVG_DELAY = mean(delay_minutes, na.rm = "TRUE"))
+summarize(AVG_DELAY = mean(delay_minutes, na.rm = TRUE))
+
+```
+
+
+
+
+
+```{r    echo = FALSE}
+library(ggplot2)
+
+ggplot(Flight_DATA, aes(x = arr_delay)) +
+  geom_histogram(binwidth = 5000, fill = "coral", color = "orange") +
+  labs(title = "Distribution of Flight Delays", x = "Arrival Delay (minutes)", y = "Frequency")
+```
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
