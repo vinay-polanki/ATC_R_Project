@@ -1,26 +1,50 @@
 ---
-title: "Flight_Delay_Prediction_using_R"
+title: "Flight_Delay_Prediction_Using_R"
 author: "Joseph Vinay Kumar POLANKI"
 date: "`r Sys.Date()`"
 output: word_document
 ---
 
+## Youtube Links
+
+<https://www.youtube.com/watch?v=tp_BG5wDeVU> (hist)
+
+<https://www.youtube.com/watch?v=BTDSzqHW_5E> <https://www.youtube.com/watch?v=wsi0jg_gH28&t=4s> (linear)
+
+<https://www.youtube.com/watch?v=dWjFReizadM&t=1s> (reg models viz)
+
+<https://www.youtube.com/watch?v=1MHX1s5bb6w> (shiny)
+
+<https://www.youtube.com/watch?v=SGOmGAwsxME> <https://www.youtube.com/watch?v=HbkgAUOYvCY> (flex) <https://www.youtube.com/watch?v=O3CgrEwTg1k> (flex)
+
+<https://www.youtube.com/watch?v=q8eR2suCyGk&t=2s> (NA)
+
+<https://www.youtube.com/watch?v=O42iklO8uYU> (NA)
+
 ## do it with both NA values in the DATA and removing NA values in DATA
+
+when tried it is giving an error or NA as mean of the data for a column.
+
+## to see the colours of ggplot
+
+## Packages to use
+
+(caret) (randomForest) (rpart) (e1071) ggplot dplyr readr stargazer
 
 # Setting up the knitr file
 
-```{r setup, include=FALSE}
+```{r setup, include= TRUE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE)
 ```
 
 ## Abstract
 
-## Research Questions
-
 ## DATA
 
-##Loading DATA into rmd file from drive.
+DATA for the project was downloaded from kaggle, which includes historical flight data, such as carrier information, Flight Schedules and delay statistics sourced from reputable aviation Databases.
+
+##Loading DATA into rmd file from drive. Rows: 3351 Columns: 21
 
 ```{r Loading_Data, echo= TRUE}
 #Loading and Inspecting the DATA
@@ -36,32 +60,54 @@ head(Flight_DATA)
 tail(Flight_DATA)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Installing ggplot and dplyr packages for Data Exploration.
 
-```{r}
+```{r, packages , echo=TRUE}
 install.packages("ggplot2")
 library(ggplot2)
+
+
+install.packages("dplyr")
+library(dplyr)
 ```
 
 ```{r }
-install.packages("dplyr")
-library(dplyr)
-glimpse(flight_data)
+
+# Install and load the color space package to see the colors available in "ggplot"
+install.packages("colorspace")
+library(colorspace)
+
+# Display the available colors.
+windows()
+colors()
+
+```
+
+```{r , Understanding the DATA,  echo= FALSE}
+
+#Basic Information and Structure of the Data
+
+glimpse(Flight_DATA)
+
+#Summary statistics of the data
+
+summary(Flight_DATA)
 
 ```
 
 ```{r  echo=TRUE }
+
 V <- is.na(Flight_DATA)   #V <- sum(is.na(Flight_DATA))
-
 y <- sum(V)
-
 y
 
-#Data set have 120 rows of NA values combined in all columns.
+#Data set have 120 rows of NA values combined in all columns, 8 rows in each column.
 
 ```
 
-```{r echo = TRUE,warning=FALSE}
+## Install tidyr package and drop rows with NA values.
+
+```{r,  echo = TRUE}
 
 install.packages("tidyr")
 library(tidyr)
@@ -75,7 +121,7 @@ Copy_DATA <- Flight_DATA
 Copy_Flight_DATA <- Copy_DATA %>% drop_na()
 
 
-# checking wether they are IDENTICAL
+# checking whether they are IDENTICAL
 
 identical(Copy_Flight_DATA,Flight_DATA)
 
@@ -85,13 +131,78 @@ dim(Copy_Flight_DATA)
 
 ```
 
+## Exploratory DATA Analysis (EDA)
+
+```{r    echo = FALSE}
+library(ggplot2)
+
+# Displaying the arrival Flight delays. 
+
+ggplot(Flight_DATA, aes(x = arr_delay)) +
+  geom_histogram(binwidth = 15, fill = "coral", color = "orange") +
+  labs(title = "Distribution of Flight Delays", x = "Arrival Delay (minutes)", y = "Frequency Of Flights")
+```
+
+Most of the flights coming on time with minimal or no delays but few of them are late arrivals
+
+```{r    echo = FALSE}
+library(ggplot2)
+
+#Delays by Carrier
+
+ggplot(Flight_DATA, aes(x = carrier_delay)) +
+  geom_histogram(binwidth = 15, fill = "steelblue", color = "green") +
+  labs(title = "Distribution of Flight Delays", x = "Arrival Delay (minutes)", y = "Frequency Of Flights")
+```
+
 ```{r }
 
+ggplot(Flight_DATA, aes(x = weather_delay)) +
+  geom_histogram(binwidth = 15, fill = "darkgray", color = "brown") +
+  labs(title = "Distribution of Flight Delay Minutes",
+       x = "weather Delay Minutes",
+       y = "Frequency Of Flights")
+
+
+```
+
+```{r }
+
+
+Flight_DATA %>%
+
+group_by(airport) %>%
+
+summarise(mean_delay = mean(arr_delay, na.rm =TRUE)) %>%
+
+ggplot(aes(x = reorder(airport,mean_delay), y= mean_delay)) +
+geom_bar (stat = "identity", fill = "purple") +
+  coord_flip() +
+  labs (title = "AVG DELAY BY AIRPORT", X = "Frequency Of Flights", y = "AVG Delay In Minutes")
+
+
+```
+
+```{r }
+
+Flight_DATA %>%
+  group_by(airport) %>%
+  summarise(mean_delay = mean(arr_delay, na.rm = TRUE)) %>%
+  top_n(25, mean_delay) %>%  # Select top 25 airports by mean delay
+  ggplot(aes(binwidth = 15, x = reorder(airport, mean_delay), y = mean_delay)) +
+  geom_bar(stat = "identity", fill = "purple") +
+  coord_flip() +
+  labs(title = "Top 10 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes")
+```
+
+
+```{r }
 # Combine the two columns into one
 flight_data <- Flight_DATA %>%
  mutate(combined_delay = paste(security_delay, weather_delay, carrier_delay, nas_delay, late_aircraft_delay, sep = "_"))
 
 ```
+
 ## if combined delay is not converted to numeric throwing an error.
 
 ```{r }
@@ -99,22 +210,10 @@ combined_delay <- as.numeric(flight_data$combined_delay)
 
 ```
 
-```{r }
-
-# Plotting histogram of combined delay minutes
-ggplot(flight_data, aes(x = weather_delay)) +
-  geom_histogram(fill = "skyblue", color = "white") +
-  labs(title = "Distribution of Flight Delay Minutes",
-       x = "Combined Delay Minutes",
-       y = "Frequency")
-
-
-```
-
-```{r }
+```{r  }
 delay_by_airport <- Flight_DATA %>%
 group_by(airport) %>%
-summarize(AVG_DELAY = mean(, na.rm = 'TRUE'))
+summarise(AVG_DELAY = mean(, na.rm = 'TRUE'))
 
 ```
 
@@ -131,41 +230,3 @@ dplyr:::summarize.grouped_df(., AVG_DELAY = mean(delay_minutes, na.rm = "TRUE"))
 summarize(AVG_DELAY = mean(delay_minutes, na.rm = TRUE))
 
 ```
-
-
-
-
-
-```{r    echo = FALSE}
-library(ggplot2)
-
-ggplot(Flight_DATA, aes(x = arr_delay)) +
-  geom_histogram(binwidth = 5000, fill = "coral", color = "orange") +
-  labs(title = "Distribution of Flight Delays", x = "Arrival Delay (minutes)", y = "Frequency")
-```
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
