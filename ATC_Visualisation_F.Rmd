@@ -107,7 +107,7 @@ y
 
 ## Install tidyr package and drop rows with NA values.
 
-```{r,  echo = TRUE}
+```{r,  echo = FALSE}
 
 install.packages("tidyr")
 library(tidyr)
@@ -192,9 +192,39 @@ Flight_DATA %>%
   ggplot(aes(binwidth = 15, x = reorder(airport, mean_delay), y = mean_delay)) +
   geom_bar(stat = "identity", fill = "purple") +
   coord_flip() +
-  labs(title = "Top 10 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes")
+  labs(title = "Top 25 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes")
 ```
 
+
+
+
+
+
+
+
+
+
+## END FOR TODAYS.
+
+
+
+
+
+```{r }
+Flight_DATA %>%
+  group_by(airport) %>%
+summarise(mean_delay = mean(arr_delay, na.rm = TRUE)) %>%
+  arrange(desc(mean_delay)) %>%
+top_n(10)
+
+
+```
+
+  
+
+  
+  
+  
 
 ```{r }
 # Combine the two columns into one
