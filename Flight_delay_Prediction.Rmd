@@ -1,0 +1,280 @@
+---
+title: "Flight_Delay_Prediction"
+author: "JPOLANKI"
+date: '`r Sys.Date()`'
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r Packages, echo=TRUE}
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages()
+
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library()
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r DATA, echo=True}
+
+Flight_Data <- read.csv("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA/air_traffic_main_Data.csv")
+
+```
+
+``` {r }
+glimpse(Flight_Data)
+summary(Flight_Data)
+
+```
+
+```{r outliers, echo=TRUE}
+
+Delays <- Flight_Data %>%
+  filter(arr_delay < 1500 & 
+         weather_delay < 1500 & 
+         nas_delay < 1500 & 
+         security_delay < 1500 &
+          late_aircraft_delay <1500)
+
+```
+
+``` {r echo=TRUE}
+
+Delays <- na.omit(Delays)
+
+dim(Delays)
+
+
+```
+
+```{r Column_Names, echo=TRUE}
+colnames(Delays) <- c("Year",
+                            "Month", "Carrier",
+                      "Carrier_Name", "Airport", 
+                      "Airport_Name",
+                      "Arrival_Flights",
+"Arrival_Delay_Flights",
+"Carrier_Delayed_Flights", 
+"Weather_Delayed_Flights",
+"NAS_Delayed_Flights",
+                      "Security_Delayed_Flights",
+                          "Late_Aircraft_Delayed_Flights",
+                          "Arrivals_Cancelled",
+                      "Arrivals_Diverted",
+                          "Total_Arrival_Delay",
+                      "Carrier_Delay_Time",
+                          "Weather_Delay_Time", 
+                      "NAS_Delay_Time", 
+                          "Security_Delay_Time",
+                      "Late_Aircraft_Delay_Time")
+
+names(Delays)
+```
+
+
+```{r }
+Delays_Reshaped <- Delays %>%
+   gather(Type_of_Delay,Delay_Minutes,Carrier_Delay_Time,Weather_Delay_Time,NAS_Delay_Time,
+          Security_Delay_Time)
+```
+
+
+```{r }
+
+
+plot_data <- Delays_Reshaped[, c("Airport", "Delay_Minutes", "Type_of_Delay")]
+
+# 2. Create scatter plot
+
+ggplot(plot_data, aes(x = Airport, y = Delay_Minutes, color = Type_of_Delay)) +
+  geom_point() +
+  coord_flip() +
+  labs(x = "Airport", y = "Delay Minutes", title = "Scatter Plot of Delay Minutes by Airport and Type of Delay")
+
+
+
+```
+
+```{r  }
+
+
+airport_delay_summary <- Flight_DATA_long %>%
+  group_by(airport, delay_type) %>%
+  summarise(mean_delay = mean(delay_minutes, na.rm = TRUE)) 
+
+ggplot(airport_delay_summary, aes(x = reorder(airport, mean_delay), y = mean_delay, fill = delay_type, color = delay_type)) +
+  geom_point() +
+  coord_flip() +
+  facet_wrap(~delay_type, scales = "free_y", nrow = 1) +
+  labs(title = "Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", fill = "Delay Type", color = "Delay Type") 
+
+```
+
+
+
+
+```{r }
+Carrier_plot <- Delays_Reshaped[, c("Carrier_Name","Delay_Minutes", "Type_of_Delay")]
+
+ggplot(Carrier_plot, aes(x = Carrier_Name, y = Delay_Minutes, color = Type_of_Delay)) +
+  geom_point() +
+  coord_flip() +
+  labs(x = "Airport", y = "Delay Minutes", title = "Scatter Plot of Delay Minutes by Airport and Type of Delay")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Delay_Summary <- Delays_Reshaped %>%
+  group_by(Airport) %>%
+  summarise(Mean_delay=mean(Delay_Minutes, na.rm=TRUE)) %>%
+top_n(25,Airport) %>%
+ggplot(aes(x = reorder(Airport, Mean_delay), y = Mean_delay, color = Type_of_Delay)) +
+  geom_point() +
+  coord_flip() +
+  labs(title = "Top 25 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", color = "Delay Type")
+
+
+
+
+
+Delay_Summary <- Delays_Reshaped %>%
+  group_by(Airport, Type_of_Delay) %>%
+  summarise(Mean_delay = mean(Delay_Minutes, na.rm = TRUE)) %>%
+  ungroup %>%
+  top_n(25,Mean_delay) %>%
+ggplot(aes(x = reorder(Airport, Mean_delay), y = Mean_delay, color = Type_of_Delay)) +
+  geom_point() +
+  coord_flip() +
+  labs(title = "Top 25 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", color = "Delay Type")
+
+
+
+
+
+Delay_Summary <- Delays_Reshaped %>%
+  group_by(Airport, Type_of_Delay) %>%
+  summarise(Mean_delay = mean(Delay_Minutes, na.rm = TRUE), .groups = "drop") %>%
+  ungroup() %>%
+  group_by(Airport) %>%
+  summarise(Mean_delay = mean(Mean_delay)) %>%
+  top_n(25, Mean_delay) %>%
+ggplot(aes(x = reorder(Airport, Mean_delay), y = Mean_delay, color = Type_of_Delay))+
+geom_point() +
+coord_flip()+
+  labs(title = "Top 25 AIrports Mean Delay", X= "Airport", Y="Delay In Minutes", Color = "Delay Type")
+
+
+
+
+
+
+
+
+
+Delay_Summary <- Delays_Reshaped %>%
+  group_by(Airport, Type_of_Delay) %>%
+  summarise(Mean_delay = mean(Delay_Minutes, na.rm = TRUE), .groups = "drop") %>%
+  ungroup() %>%
+  group_by(Airport) %>%
+  summarise(Mean_delay = mean(Mean_delay)) %>%
+  top_n(25, Mean_delay)
+
+ggplot(Delay_Summary, aes(x = reorder(Airport, Mean_delay), y = Mean_delay)) +
+  geom_point() +
+  coord_flip() +
+  labs(title = "Top 25 Airports by Mean Delay", x = "Airport", y = "Delay In Minutes")
+
+
+
+
+
+
+
+
+Flight_DATA %>%
+  group_by(airport) %>%
+  summarise(mean_delay = mean(arr_delay, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(airport, mean_delay), y = mean_delay)) +
+  geom_bar(stat = "identity", fill = "purple", width = 0.5) +  # Adjust width as needed
+  coord_flip() +
+  labs(title = "AVG DELAY BY AIRPORT", x = "Airport", y = "AVG Delay In Minutes")
+
+
+
+  
+
+
+
+# Filter airport_delay_summary for top 25 airports
+top_airport_delay_summary <- airport_delay_summary %>%
+  filter(airport %in% top_airports)
+  
+   top_n(25, mean_delay) %>%
+   
+   top_airports <- airport_delay_summary %>%
+  group_by(airport) %>%
+  summarise(mean_delay = sum(mean_delay, na.rm = TRUE)) %>%
+  pull(airport)
+
+
+# Create the plot
+ggplot(top_airport_delay_summary, aes(x = reorder(airport, mean_delay), y = mean_delay, color = delay_type)) +
+  geom_point() +
+  coord_flip() +
+  labs(title = "Top 25 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", color = "Delay Type")
+
