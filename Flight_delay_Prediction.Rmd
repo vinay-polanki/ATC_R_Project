@@ -5,69 +5,57 @@ date: '`r Sys.Date()`'
 output: word_document
 ---
 
-```{r setup, include=FALSE}
+##Setting up a knitr File setting up knitr file for the project and not including the Knitr file code into the end knitted document.
+
+```{r Knitr file setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Installing R Packages
 
 ```{r Packages, echo=TRUE}
 install.packages("readr")
 install.packages("ggplot2")
 install.packages("dplyr")
 install.packages("tidyr")
-install.packages()
+install.packages("Caret")
+install.packages("stargazer")
+
 
 library(readr)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library()
+library(caret)
+library(stargazer)
 ```
 
-## Including Plots
+## Importing the DATA into rmd file
 
-You can also embed plots, for example:
+This Data set includes Historical flight data such as carrier Information which airport and type of delays and this was sourced from Bureau of Transportation statistics.
 
 ```{r DATA, echo=True}
 
 Flight_Data <- read.csv("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA/air_traffic_main_Data.csv")
 
+names(Flight_Data)
 ```
 
-``` {r }
+##Over view of the DATA after the Data was imported, to get the overview of the DATA like Descriptive statistics like Min, MAX, AVG of the columns and basic structure of the Data along the with Null Values.
+
+```{r overview, echo = TRUE  }
 glimpse(Flight_Data)
 summary(Flight_Data)
 
 ```
 
-```{r outliers, echo=TRUE}
+## Column_Names
 
-Delays <- Flight_Data %>%
-  filter(arr_delay < 1500 & 
-         weather_delay < 1500 & 
-         nas_delay < 1500 & 
-         security_delay < 1500 &
-          late_aircraft_delay <1500)
-
-```
-
-``` {r echo=TRUE}
-
-Delays <- na.omit(Delays)
-
-dim(Delays)
-
-
-```
+Changed the column names to more readable format, which makes easy to remember and work with the column for the further operations.
 
 ```{r Column_Names, echo=TRUE}
-colnames(Delays) <- c("Year",
+colnames(Flight_Data) <- c("Year",
                             "Month", "Carrier",
                       "Carrier_Name", "Airport", 
                       "Airport_Name",
@@ -87,194 +75,92 @@ colnames(Delays) <- c("Year",
                           "Security_Delay_Time",
                       "Late_Aircraft_Delay_Time")
 
-names(Delays)
+names(Flight_Data)
 ```
 
+## Filtering the DATA
 
-```{r }
+From the code above summary statistics shows the outliers of the data in few delays. Filtering the data to take out the outliers and capped the data to 720 minutes (12 Hours) in the Total_Arrival_Delay column(sum of all the delays).
+
+```{r outliers, echo=TRUE}
+
+Delays <- Flight_Data %>%
+  filter(Total_Arrival_Delay <= 720)
+
+```
+
+## DATA Reshaping for the Exploratory Data Analysis
+
+Reshaped the Data by gather function which forms a new column i.e., Type_Of_Delay consists of all the delay types that exists as each column in the data and their respective values in the Delay_Minutes column.
+
+```{r reshaping, echo=TRUE}
 Delays_Reshaped <- Delays %>%
-   gather(Type_of_Delay,Delay_Minutes,Carrier_Delay_Time,Weather_Delay_Time,NAS_Delay_Time,
+   gather(Type_Of_Delay,Delay_Minutes,Carrier_Delay_Time,Weather_Delay_Time,NAS_Delay_Time,
           Security_Delay_Time)
 ```
 
+## DATA PLOTTING for Exploratory Data Analysis
 
-```{r }
+##Plotting Data by Airport
 
+Plotting the distribution of delay minutes for each airport based on delay type enables a visual understanding of delay patterns.
 
-plot_data <- Delays_Reshaped[, c("Airport", "Delay_Minutes", "Type_of_Delay")]
+```{r  Delay minutes by Airport, echo=TRUE}
 
-# 2. Create scatter plot
-
-ggplot(plot_data, aes(x = Airport, y = Delay_Minutes, color = Type_of_Delay)) +
+ggplot(Delays_Reshaped, aes(x = Airport, y = Delay_Minutes, color = Type_Of_Delay)) +
   geom_point() +
   coord_flip() +
-  labs(x = "Airport", y = "Delay Minutes", title = "Scatter Plot of Delay Minutes by Airport and Type of Delay")
-
-
+  labs(x = "Airport", y = "Delay in Minutes", title = "Scatter Plot for Delay Minutes and Type Of Delay by Airport")
 
 ```
 
-```{r  }
+From the above scatter_plot it is visible that Security_Delay is mostly around the 0 Minutes and rest of the values are near to 0 with no significant outliers.Even though, NAS_Delay's ("National Airspace System") are near to 0 but have have notable No.of values away from 0 and Carrier_Delay and Weather_Delay are mostly scattered away from Zero and have extreme outliers in the column when plotted for each Airport.
 
+## Plotting Data by each CARRIER.
 
-airport_delay_summary <- Flight_DATA_long %>%
-  group_by(airport, delay_type) %>%
-  summarise(mean_delay = mean(delay_minutes, na.rm = TRUE)) 
+Plotting the distribution of delay minutes for each Carrier based on delay type enables a visual understanding of delay patterns
 
-ggplot(airport_delay_summary, aes(x = reorder(airport, mean_delay), y = mean_delay, fill = delay_type, color = delay_type)) +
-  geom_point() +
-  coord_flip() +
-  facet_wrap(~delay_type, scales = "free_y", nrow = 1) +
-  labs(title = "Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", fill = "Delay Type", color = "Delay Type") 
+```{r Delay minutes by carrier, echo=TRUE}
 
-```
-
-
-
-
-```{r }
-Carrier_plot <- Delays_Reshaped[, c("Carrier_Name","Delay_Minutes", "Type_of_Delay")]
-
-ggplot(Carrier_plot, aes(x = Carrier_Name, y = Delay_Minutes, color = Type_of_Delay)) +
+ggplot(Delays_Reshaped, aes(x = Carrier_Name, y = Delay_Minutes, color = Type_Of_Delay)) +
   geom_point() +
   coord_flip() +
   labs(x = "Airport", y = "Delay Minutes", title = "Scatter Plot of Delay Minutes by Airport and Type of Delay")
 
 ```
 
+Comparing the delays with Airport, Security delays are mostly scattered around zero. where as the carrier delay have most of the values away from the zero with significant outliers according to the filtered Data. NAS_Delay and Weather_Delay are scattered from zero to 400 Minutes mostly but have very few outliers.
 
+From the two Scatter plots It is clear that the Weather_Delay, NAS_Delay, & Carrier_Delay are most important factors in predicting the delay because Security_delay is mostly around Zero in both.
 
+## Logistic regression suits
 
+Logistic regression is used when one predictor variable and more than one independent variables and it is used when the dependent is Binary(0,1). it is supervised machine learning or regression. uses the logistic function to understand the relationship between the variables.
 
+## decision tree
 
+Decision tree is also used to predict one dependent variable based on multiple independent variable. decision tree predict the variable by dividing the data into smaller parts and creates a tree like structure. internal nodes represent a decision based on feature and leaf nodes = predicted out comes. decision trees are easy to interpret and easy to understand. handles both categorical and Numerical data.
 
+## Easy to Understand and less accuracy than the Logistic regression used when variables have complex relaion.
 
+##Neural Networks(more data and computational power) fro binary prediction.
 
+##GBM Gradient Boosting Machines creates many decision trees and correct errors
 
+##Random Forest same like GBM but combines multiple DT's for good Accuracy.
 
+Extension of Decision Trees (Like seeking opinion from multiple experts) forms group of decision trees(random forest). It collects the prediction from each tree and makes its decision on majority. Can know the importance of individual Independent Variable in Predicting the dependent variable using the RANDOM FOREST
 
+## Adding the column
 
 
+adding a new column called "Delay_120" to the data set. If a flight's total arrival delay is more than 120 minutes, it gets marked as 1 in this column. Otherwise, it's marked as 0. This helps easily identify longer delays for analysis.
 
+```{r  adding a column, echo=TRUE}
+# Create the new column indicating total arrival delay >= 120 minutes
+Delays$Delay_120 <- ifelse(Delays$Total_Arrival_Delay > 120, 1, 0)
 
+# Convert the new column into a factor (optional)
+Delays$Delay_120 <- as.factor(Delays$Delay_120)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Delay_Summary <- Delays_Reshaped %>%
-  group_by(Airport) %>%
-  summarise(Mean_delay=mean(Delay_Minutes, na.rm=TRUE)) %>%
-top_n(25,Airport) %>%
-ggplot(aes(x = reorder(Airport, Mean_delay), y = Mean_delay, color = Type_of_Delay)) +
-  geom_point() +
-  coord_flip() +
-  labs(title = "Top 25 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", color = "Delay Type")
-
-
-
-
-
-Delay_Summary <- Delays_Reshaped %>%
-  group_by(Airport, Type_of_Delay) %>%
-  summarise(Mean_delay = mean(Delay_Minutes, na.rm = TRUE)) %>%
-  ungroup %>%
-  top_n(25,Mean_delay) %>%
-ggplot(aes(x = reorder(Airport, Mean_delay), y = Mean_delay, color = Type_of_Delay)) +
-  geom_point() +
-  coord_flip() +
-  labs(title = "Top 25 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", color = "Delay Type")
-
-
-
-
-
-Delay_Summary <- Delays_Reshaped %>%
-  group_by(Airport, Type_of_Delay) %>%
-  summarise(Mean_delay = mean(Delay_Minutes, na.rm = TRUE), .groups = "drop") %>%
-  ungroup() %>%
-  group_by(Airport) %>%
-  summarise(Mean_delay = mean(Mean_delay)) %>%
-  top_n(25, Mean_delay) %>%
-ggplot(aes(x = reorder(Airport, Mean_delay), y = Mean_delay, color = Type_of_Delay))+
-geom_point() +
-coord_flip()+
-  labs(title = "Top 25 AIrports Mean Delay", X= "Airport", Y="Delay In Minutes", Color = "Delay Type")
-
-
-
-
-
-
-
-
-
-Delay_Summary <- Delays_Reshaped %>%
-  group_by(Airport, Type_of_Delay) %>%
-  summarise(Mean_delay = mean(Delay_Minutes, na.rm = TRUE), .groups = "drop") %>%
-  ungroup() %>%
-  group_by(Airport) %>%
-  summarise(Mean_delay = mean(Mean_delay)) %>%
-  top_n(25, Mean_delay)
-
-ggplot(Delay_Summary, aes(x = reorder(Airport, Mean_delay), y = Mean_delay)) +
-  geom_point() +
-  coord_flip() +
-  labs(title = "Top 25 Airports by Mean Delay", x = "Airport", y = "Delay In Minutes")
-
-
-
-
-
-
-
-
-Flight_DATA %>%
-  group_by(airport) %>%
-  summarise(mean_delay = mean(arr_delay, na.rm = TRUE)) %>%
-  ggplot(aes(x = reorder(airport, mean_delay), y = mean_delay)) +
-  geom_bar(stat = "identity", fill = "purple", width = 0.5) +  # Adjust width as needed
-  coord_flip() +
-  labs(title = "AVG DELAY BY AIRPORT", x = "Airport", y = "AVG Delay In Minutes")
-
-
-
-  
-
-
-
-# Filter airport_delay_summary for top 25 airports
-top_airport_delay_summary <- airport_delay_summary %>%
-  filter(airport %in% top_airports)
-  
-   top_n(25, mean_delay) %>%
-   
-   top_airports <- airport_delay_summary %>%
-  group_by(airport) %>%
-  summarise(mean_delay = sum(mean_delay, na.rm = TRUE)) %>%
-  pull(airport)
-
-
-# Create the plot
-ggplot(top_airport_delay_summary, aes(x = reorder(airport, mean_delay), y = mean_delay, color = delay_type)) +
-  geom_point() +
-  coord_flip() +
-  labs(title = "Top 25 Airports by AVG Delay", x = "Airport", y = "AVG Delay In Minutes", color = "Delay Type")
-
+```
