@@ -3,6 +3,7 @@ title: "Flight_Delay_Prediction"
 author: "JPOLANKI"
 date: '`r Sys.Date()`'
 output: word_document
+warning: FALSE
 ---
 
 ##Setting up a knitr File setting up knitr file for the project and not including the Knitr file code into the end knitted document.
@@ -35,14 +36,15 @@ library(stargazer)
 
 This Data set includes Historical flight data such as carrier Information which airport and type of delays and this was sourced from Bureau of Transportation statistics.
 
-```{r DATA, echo=True}
+```{r  DATA, echo=True}
 
 Flight_Data <- read.csv("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA/air_traffic_main_Data.csv")
 
 names(Flight_Data)
 ```
 
-##Over view of the DATA after the Data was imported, to get the overview of the DATA like Descriptive statistics like Min, MAX, AVG of the columns and basic structure of the Data along the with Null Values.
+##Over view of the DATA 
+After the Data was imported, to get the overview of the DATA like Descriptive statistics like Min, MAX, AVG of the columns and basic structure of the Data along the with Null Values.
 
 ```{r overview, echo = TRUE  }
 glimpse(Flight_Data)
@@ -87,17 +89,20 @@ From the code above summary statistics shows the outliers of the data in few del
 Delays <- Flight_Data %>%
   filter(Total_Arrival_Delay <= 720)
 
+dim(Delays)
 ```
 
-## DATA Reshaping for the Exploratory Data Analysis
 
+## DATA Reshaping for the Exploratory Data Analysis
 Reshaped the Data by gather function which forms a new column i.e., Type_Of_Delay consists of all the delay types that exists as each column in the data and their respective values in the Delay_Minutes column.
 
 ```{r reshaping, echo=TRUE}
 Delays_Reshaped <- Delays %>%
    gather(Type_Of_Delay,Delay_Minutes,Carrier_Delay_Time,Weather_Delay_Time,NAS_Delay_Time,
-          Security_Delay_Time)
+          Security_Delay_Time,Late_Aircraft_Delay_Time)
+
 ```
+
 
 ## DATA PLOTTING for Exploratory Data Analysis
 
@@ -116,6 +121,7 @@ ggplot(Delays_Reshaped, aes(x = Airport, y = Delay_Minutes, color = Type_Of_Dela
 
 From the above scatter_plot it is visible that Security_Delay is mostly around the 0 Minutes and rest of the values are near to 0 with no significant outliers.Even though, NAS_Delay's ("National Airspace System") are near to 0 but have have notable No.of values away from 0 and Carrier_Delay and Weather_Delay are mostly scattered away from Zero and have extreme outliers in the column when plotted for each Airport.
 
+
 ## Plotting Data by each CARRIER.
 
 Plotting the distribution of delay minutes for each Carrier based on delay type enables a visual understanding of delay patterns
@@ -125,13 +131,138 @@ Plotting the distribution of delay minutes for each Carrier based on delay type 
 ggplot(Delays_Reshaped, aes(x = Carrier_Name, y = Delay_Minutes, color = Type_Of_Delay)) +
   geom_point() +
   coord_flip() +
-  labs(x = "Airport", y = "Delay Minutes", title = "Scatter Plot of Delay Minutes by Airport and Type of Delay")
+  labs(x = "Carrier", y = "Delay in Minutes", title = "Scatter plot for Delay_Time and Type of Delay for Carrier")
+
+```
+##Exploratory DATA Analysis
+The Exploratory Data Analysis revealed key insights into the factors contributing to flight delays, such as carrier performance, weather conditions and NAS delays. In this of distribution of Flight Delays a scatterplot was created and its analysis demonstrated that significant number of flights experience minimum number of flight delays indicating efficient operations across many flights. This Scatter plot on delays by carriers indicated variations in delay times across different carriers. This insight could help airline to benchmark performance and identify areas for operational improvements. The analysis on impact of weather and NAS Delays have a noticeable impact on flight punctuality.
+
+
+## Adding the column
+adding a new column called "Delay_120" to the data set. If a flight's total arrival delay is more than 120 minutes, it gets marked as 1 in this column. Otherwise, it's marked as 0. This helps easily identify longer delays for analysis.
+
+```{r  adding a column, echo=TRUE}
+# Create the new column indicating total arrival delay >= 120 minutes
+Delays$Delay_120 <- ifelse(Delays$Total_Arrival_Delay >= 120, 1, 0)
 
 ```
 
-Comparing the delays with Airport, Security delays are mostly scattered around zero. where as the carrier delay have most of the values away from the zero with significant outliers according to the filtered Data. NAS_Delay and Weather_Delay are scattered from zero to 400 Minutes mostly but have very few outliers.
 
-From the two Scatter plots It is clear that the Weather_Delay, NAS_Delay, & Carrier_Delay are most important factors in predicting the delay because Security_delay is mostly around Zero in both.
+Converting a numeric variable into factor variable to perform regression analysis and for building a predictive model.
+
+```{r converting as factor, echo=TRUE}
+Delays$Delay_120 <- as.factor(Delays$Delay_120)
+
+is.factor(Delays$Delay_120)
+
+```
+##DATA Preparation
+After ensuring the variable as factor, preparing the data for CARET's Train/test split.
+```{r  DATA Preparation, echo=TRUE}
+set.seed(123) #for Reproducibility
+index <- createDataPartition(Delays$Total_Arrival_Delay, p=0.8, list = FALSE)
+
+Trainingset <- Delays[index, ]
+Testingset <- Delays[-index, ]
+
+#setting up training control for cross-validation
+trainControl <- trainControl(method = "cv", number = 10)
+
+```
+
+##Regression Models
+```{r Regression_Models, echo=TRUE}
+library(rpart)
+library(randomForest)
+
+
+# Logistic Regression
+logistic_model <- glm(Delay_120 ~ Month + Carrier + Carrier_Delay_Time + NAS_Delay_Time +
+                        Security_Delay_Time + Weather_Delay_Time + Late_Aircraft_Delay_Time,
+                      data = Trainingset, family = binomial)
+
+# Decision Tree
+tree_model <- rpart(Delay_120 ~ Month + Carrier + Carrier_Delay_Time + NAS_Delay_Time +
+                      Security_Delay_Time + Weather_Delay_Time + Late_Aircraft_Delay_Time,
+                    data = Trainingset, method = "class")
+
+# Random Forest
+forest_model <- randomForest(Delay_120 ~ Month + Carrier + Carrier_Delay_Time + NAS_Delay_Time +
+                               Security_Delay_Time + Weather_Delay_Time + Late_Aircraft_Delay_Time,
+                             data = Trainingset)
+```
+
+##Testing
+Testing the accuracy of the Models.
+
+```{r Testing_Predictive_Model, echo=TRUE}
+# Predictions on Testing Set
+logistic_pred <- predict(logistic_model, newdata = Testingset, type = "response")
+
+tree_pred <- predict(tree_model, newdata = Testingset, type = "class")
+
+
+forest_pred <- predict(forest_model, newdata = Testingset)
+
+
+```
+
+
+##Accuracy
+```{r  Accuracy_Logistic, Decision Tree and Random_Forest, echo=TRUE}
+
+# Logistic_Regression_Accuracy
+logistic_accuracy <- mean(ifelse(logistic_pred > 0.5, 1, 0) == Testingset$Delay_120)
+
+cat("Logistic Regression Accuracy:", logistic_accuracy, "\n")
+
+#Decision_Tree_Accuracy
+tree_accuracy <- mean(tree_pred == Testingset$Delay_120)
+
+cat("Decision Tree Accuracy:", tree_accuracy, "\n")
+
+
+#Random_Forest_Accuracy
+forest_accuracy <- mean(forest_pred == Testingset$Delay_120)
+cat("Random Forest Accuracy:", forest_accuracy, "\n")
+
+
+```
+
+Logistic Regression model has an accuracy of 98.16% the decision tree model has an accuracy of 95.41% and the random forest model has an accuracy of 97.24%. Among these, the Logistic regression has Highest accuracy in predicting flight delays.
+
+```{r }
+
+library(stargazer)
+
+stargazer(logistic_model, type = "html", title = "Logistic")
+
+
+```
+```{r }
+ library(rpart)
+install.packages("rpart.plot")
+library(rpart.plot)
+install.packages("randomForestExplainer")
+library(randomForestExplainer)
+
+# Assuming "tree_model
+
+varImpPlot(forest_model)
+
+```
+
+
+
+```{r }
+library(rpart)
+library(rpart.plot)
+
+# Assuming "tree_model" is your rpart tree model object
+rpart.plot(tree_model)
+
+
+```
 
 ## Logistic regression suits
 
@@ -151,16 +282,12 @@ Decision tree is also used to predict one dependent variable based on multiple i
 
 Extension of Decision Trees (Like seeking opinion from multiple experts) forms group of decision trees(random forest). It collects the prediction from each tree and makes its decision on majority. Can know the importance of individual Independent Variable in Predicting the dependent variable using the RANDOM FOREST
 
-## Adding the column
+
+## LOGISTIC REGRESSION & DECISION TREE & RANDOM FOREST
+
+## Logistic Regression
+
+##Training the DATA
 
 
-adding a new column called "Delay_120" to the data set. If a flight's total arrival delay is more than 120 minutes, it gets marked as 1 in this column. Otherwise, it's marked as 0. This helps easily identify longer delays for analysis.
 
-```{r  adding a column, echo=TRUE}
-# Create the new column indicating total arrival delay >= 120 minutes
-Delays$Delay_120 <- ifelse(Delays$Total_Arrival_Delay > 120, 1, 0)
-
-# Convert the new column into a factor (optional)
-Delays$Delay_120 <- as.factor(Delays$Delay_120)
-
-```
