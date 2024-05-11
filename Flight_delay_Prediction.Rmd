@@ -30,7 +30,7 @@ knitr::opts_chunk$set(warning = FALSE)
 ```
 
 ## Installing R Packages
-
+```{  Installing the Required Packages for the project}
 install.packages("readr")
 install.packages("ggplot2")
 install.packages("dplyr")
@@ -43,6 +43,10 @@ install.packages("rpart")
 install.packages("rpart.plot")
 install.packages("pscl")
 install.packages("fmsb")
+```
+
+
+# Loading the Installed packges for the knitter file:
 
 ```{r loading the Installed packages, echo=TRUE}
 library(readr)
@@ -70,7 +74,7 @@ Flight_Data <- read.csv("G:/My Drive/CIS 663 R programming/ATC_R_Project/DATA/ai
 
 ##Over view of the DATA After the Data was imported, to get the overview of the DATA like Descriptive statistics like Min, MAX, AVG of the columns and basic structure of the Data along the with Null Values.
 
-```{r overview, echo = TRUE  }
+```{r overview of the DATA, echo = TRUE  }
 glimpse(Flight_Data)
 summary(Flight_Data)
 
@@ -108,7 +112,7 @@ names(Flight_Data)
 
 From the code above summary statistics shows the outliers of the data in few delays. Filtering the data to take out the outliers and capped the data to 720 minutes (12 Hours) in the Total_Arrival_Delay column(sum of all the delays).
 
-```{r outliers, echo=TRUE}
+```{r Finding the outliers and capping the DATA, echo=TRUE}
 
 Delays <- Flight_Data %>%
   filter(Total_Arrival_Delay <= 720)
@@ -120,7 +124,7 @@ dim(Delays)
 
 Reshaped the Data by gather function which forms a new column i.e., Type_Of_Delay consists of all the delay types that exists as each column in the data and their respective values in the Delay_Minutes column.
 
-```{r reshaping, echo=TRUE}
+```{r Reshaping the DATA for Plotting, echo=TRUE}
 Delays_Reshaped <- Delays %>%
    gather(Type_Of_Delay,Delay_Minutes,Carrier_Delay_Time,Weather_Delay_Time,NAS_Delay_Time,
           Security_Delay_Time,Late_Aircraft_Delay_Time)
@@ -249,7 +253,7 @@ cat("Random Forest Accuracy:", forest_accuracy, "\n")
 
 Logistic Regression model has an accuracy of 99.38% the decision tree model has an accuracy of 95.41% and the random forest model has an accuracy of 0%. Among these, the Logistic regression has Highest accuracy in predicting flight delays.
 
-```{r echo=TRUE}
+```{r Creating the table for Logistic_model, echo=TRUE}
 # Creating a table for the Co-efficients and Standard errors in the Logistic regression.
 
 library(stargazer)
