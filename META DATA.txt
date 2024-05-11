@@ -1,4 +1,4 @@
-Based on the dataset provided, a potential proposal could be to predict flight delays based on various factors such as carrier, airport, and month. In this case, the target variable would be the arr_del15 column, which indicates whether a flight arrived more than 15 minutes late (1 for yes, 0 for no).
+To predict flight delays based on various factors such as carrier, airport, and month. In this case, the target variable would be the arrival_delay_15 column, which indicates whether a flight arrived more than 15 minutes late (1 for yes, 0 for no).
 
 The predictor variables could include:
 
