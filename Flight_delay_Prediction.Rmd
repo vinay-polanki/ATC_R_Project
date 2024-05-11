@@ -162,7 +162,9 @@ ggplot(Delays_Reshaped, aes(x = Carrier_Name, y = Delay_Minutes, color = Type_Of
 
 ```
 
-##Exploratory DATA Analysis The Exploratory Data Analysis revealed key insights into the factors contributing to flight delays, such as carrier performance, weather conditions and NAS delays. In this of distribution of Flight Delays a scatterplot was created and its analysis demonstrated that significant number of flights experience minimum number of flight delays indicating efficient operations across many flights. This Scatter plot on delays by carriers indicated variations in delay times across different carriers. This insight could help airline to benchmark performance and identify areas for operational improvements. The analysis on impact of weather and NAS Delays have a noticeable impact on flight punctuality.
+## Exploratory DATA Analysis:
+
+The Exploratory Data Analysis revealed key insights into the factors contributing to flight delays, such as carrier performance, weather conditions and NAS delays. In this of distribution of Flight Delays a scatterplot was created and its analysis demonstrated that significant number of flights experience minimum number of flight delays indicating efficient operations across many flights. This Scatter plot on delays by carriers indicated variations in delay times across different carriers. This insight could help airline to benchmark performance and identify areas for operational improvements. The analysis on impact of weather and NAS Delays have a noticeable impact on flight punctuality.
 
 ## Adding the column
 
